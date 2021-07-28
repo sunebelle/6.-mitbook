@@ -1,7 +1,8 @@
 import express from "express";
 import mongoose from "mongoose";
-
 import PostMessage from "../models/postMessage.js";
+import multer from "multer";
+import catchAsync from "../utils/catchAsync.js";
 
 const router = express.Router();
 
@@ -27,46 +28,99 @@ export const getPost = async (req, res) => {
   }
 };
 
+const multerStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "public/img");
+  },
+  filename: function (req, file, cb) {
+    cb(null, `user-${Date.now()}-${file.originalname}`);
+  },
+});
+
+const multerFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith("image")) {
+    cb(null, true);
+  } else {
+    cb(new Error("Not an image! Please upload only images"));
+  }
+};
+
+const upload = multer({ storage: multerStorage, fileFilter: multerFilter });
+
+export const uploadUserPhoto = upload.single("file");
+
 export const createPost = async (req, res) => {
-  const { title, message, file, creator, tags } = req.body;
-
-  const newPostMessage = new PostMessage({
-    title,
-    message,
-    file,
-    creator,
-    tags,
-  });
-
   try {
+    let file;
+    const { title, message, name, tags, photoURL } = req.body;
+    const getTags = tags.split(",");
+    const creatorId = req.userId;
+    if (req.file) file = req.file.path;
+
+    const newPostMessage = new PostMessage({
+      title,
+      creatorId,
+      photoURL,
+      message,
+      file,
+      name,
+      tags: getTags,
+    });
+
     await newPostMessage.save();
 
     res.status(201).json(newPostMessage);
   } catch (error) {
+    console.log(error);
+    console.log(error.message);
     res.status(409).json({ message: error.message });
   }
 };
 
 export const updatePost = async (req, res) => {
   try {
+    let file;
     const { id } = req.params;
-    const { title, message, creator, file, tags } = req.body;
-
     if (!mongoose.Types.ObjectId.isValid(id))
       return res.status(404).send(`No post with id: ${id}`);
 
+    const { title, message, tags } = req.body;
+    if (req.file) file = req.file.path;
+
     const updatedPost = {
-      creator,
       title,
       message,
       tags,
       file,
-      _id: id,
+      // _id: id,
     };
 
-    await PostMessage.findByIdAndUpdate(id, updatedPost, { new: true });
+    // await PostMessage.findByIdAndUpdate(id, updatedPost, { new: true });
+    // const foundUpdatedPost = await PostMessage.findOneAndUpdate(
+    //   { _id: id },
+    //   {$set: req.body},
+    //   { new: true },
+    //   (err, foundPost) => {
+    //     if (err) throw new Error("There is no post updated");
+    //     return foundPost;
+    //   }
+    // );
 
-    res.json(updatedPost);
+    // // res.json(updatedPost);
+    // res.json(foundUpdatedPost);
+
+    await PostMessage.findOneAndUpdate(
+      { _id: id },
+      updatedPost,
+      { new: true },
+      (err, foundPost) => {
+        if (foundPost) {
+          res.json(foundPost);
+        } else {
+          res.send("There is no post updated");
+        }
+      }
+    );
   } catch (error) {
     throw new Error(error.message);
   }
@@ -94,13 +148,18 @@ export const likePost = async (req, res) => {
 
   const post = await PostMessage.findById(id);
 
-  const updatedPost = await PostMessage.findByIdAndUpdate(
-    id,
-    { likeCount: post.likeCount + 1 },
-    { new: true }
-  );
+  const index = post.likes.findIndex((id) => id === String(req.userId));
 
-  res.json(updatedPost);
+  if (index === -1) {
+    post.likes.push(req.userId);
+  } else {
+    post.likes = post.likes.filter((id) => id !== String(req.userId));
+  }
+  // liking a post is actually equivalent to update a post with its new updated likes property
+  const likedPost = await PostMessage.findByIdAndUpdate(id, post, {
+    new: true,
+  });
+  res.status(200).json(likedPost);
 };
 
 export default router;
