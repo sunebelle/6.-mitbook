@@ -3,6 +3,7 @@ import express from "express";
 import {
   getPosts,
   getPost,
+  getPostsBySearch,
   createPost,
   updatePost,
   likePost,
@@ -13,18 +14,20 @@ import auth from "../middleware/auth.js";
 
 const router = express.Router();
 
-router.route("/").get(getPosts).post(auth, uploadUserPhoto, createPost);
+router
+  .route("/")
+  .get(getPosts)
+  .post(auth, uploadUserPhoto, createPost);
+//  `/posts/search?searchQuery=${searchText: "the alchemist"}&tags=${searchTag: "book,story,startup"}`
+
+router.route("/search").get(getPostsBySearch);
 
 router.use(auth);
 router.patch("/:id/likePost", likePost);
-router.route("/:id").patch(uploadUserPhoto, updatePost).delete(deletePost);
-
-// router.get("/", getPosts);
-// router.post("/", uploadUserPhoto, createPost);
-// router.patch("/:id", uploadUserPhoto, updatePost);
-// router.delete("/:id", deletePost);
-// router.post("/", auth, createPost);
-// router.patch("/:id", auth, updatePost);
-// router.delete("/:id", auth, deletePost);
+router
+  .route("/:id")
+  .get(getPost)
+  .patch(uploadUserPhoto, updatePost)
+  .delete(deletePost);
 
 export default router;

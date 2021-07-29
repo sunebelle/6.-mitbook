@@ -3,14 +3,28 @@ import mongoose from "mongoose";
 import PostMessage from "../models/postMessage.js";
 import multer from "multer";
 import catchAsync from "../utils/catchAsync.js";
+import APIFeatures from "../utils/apiFeatures.js";
 
 const router = express.Router();
 
 export const getPosts = async (req, res) => {
-  try {
-    const postMessages = await PostMessage.find();
+  // console.log(req.query);
+  const page = req.query.page * 1 || 1;
+  const limit = req.query.limit * 1 || 4;
+  const skip = (page - 1) * limit; //startIndex
 
-    res.status(200).json(postMessages);
+  try {
+    const totalOfPages = await PostMessage.countDocuments();
+    const posts = await PostMessage.find()
+      .sort("-createdAt")
+      .skip(skip)
+      .limit(limit);
+
+    res.status(200).json({
+      posts,
+      currentPage: page,
+      numberOfPages: Math.ceil(totalOfPages / limit),
+    });
   } catch (error) {
     res.status(404).json({ message: error.message });
   }
@@ -23,6 +37,23 @@ export const getPost = async (req, res) => {
     const post = await PostMessage.findById(id);
 
     res.status(200).json(post);
+  } catch (error) {
+    res.status(404).json({ message: error.message });
+  }
+};
+
+export const getPostsBySearch = async (req, res) => {
+  // console.log(req.query);
+  const { searchQuery, tags } = req.query;
+  try {
+    const title = new RegExp(searchQuery, "i");
+
+    const posts = await PostMessage.find({
+      $or: [{ title }, { tags: { $in: tags.split(",") } }],
+    });
+
+    res.json({ data: posts });
+    // console.log(posts);
   } catch (error) {
     res.status(404).json({ message: error.message });
   }
@@ -85,12 +116,13 @@ export const updatePost = async (req, res) => {
       return res.status(404).send(`No post with id: ${id}`);
 
     const { title, message, tags } = req.body;
+    const getTags = tags.split(",");
     if (req.file) file = req.file.path;
 
     const updatedPost = {
       title,
       message,
-      tags,
+      tags: getTags,
       file,
       // _id: id,
     };
@@ -105,8 +137,6 @@ export const updatePost = async (req, res) => {
     //     return foundPost;
     //   }
     // );
-
-    // // res.json(updatedPost);
     // res.json(foundUpdatedPost);
 
     await PostMessage.findOneAndUpdate(
