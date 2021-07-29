@@ -2,8 +2,6 @@ import express from "express";
 import mongoose from "mongoose";
 import PostMessage from "../models/postMessage.js";
 import multer from "multer";
-import catchAsync from "../utils/catchAsync.js";
-import APIFeatures from "../utils/apiFeatures.js";
 
 const router = express.Router();
 
@@ -22,7 +20,6 @@ export const getPosts = async (req, res) => {
 
     res.status(200).json({
       posts,
-      currentPage: page,
       numberOfPages: Math.ceil(totalOfPages / limit),
     });
   } catch (error) {
