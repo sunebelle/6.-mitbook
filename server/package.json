@@ -4,6 +4,7 @@
   "main": "server.js",
   "type": "module",
   "scripts": {
+    "test": "node server.js",
     "start": "nodemon server.js"
   },
   "keywords": [],
@@ -18,11 +19,9 @@
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
+    "multer": "^1.4.2",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.9.29",
     "validator": "^13.6.0"
-  },
-  "devDependencies": {
-    "multer": "^1.4.2"
   }
 }
