@@ -6,7 +6,12 @@ dotevn.config();
 mongoose.connect(
   // "mongodb://localhost:27017/mern_memoriesDB",
   process.env.ATLAS_URI,
-  { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false },
+  {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    useFindAndModify: false,
+    useCreateIndex: true,
+  },
   () => console.log("connect to DB successfully")
 );
 

@@ -29,7 +29,6 @@ export const getPosts = async (req, res) => {
 
 export const getPost = async (req, res) => {
   const { id } = req.params;
-
   try {
     const post = await PostMessage.findById(id);
 
@@ -100,7 +99,7 @@ export const createPost = async (req, res) => {
     res.status(201).json(newPostMessage);
   } catch (error) {
     console.log(error);
-    console.log(error.message);
+    // console.log(error.message);
     res.status(409).json({ message: error.message });
   }
 };
