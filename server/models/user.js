@@ -28,11 +28,14 @@ const userSchema = mongoose.Schema({
       message: "password does not match",
     },
   },
-  photoURL: String,
+  imageUrl: String,
   // id: { type: String },
 });
 
 userSchema.pre("save", async function (next) {
+  const seed = Math.floor(Math.random() * 5000);
+  this.imageUrl = `https://avatars.dicebear.com/api/human/${seed}.svg`;
+
   // hash password 12 salts
   this.password = await bcrypt.hash(this.password, 12);
 

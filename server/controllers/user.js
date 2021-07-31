@@ -51,6 +51,7 @@ export const register = async (req, res) => {
       password,
       confirmPassword,
       name: `${firstName} ${lastName}`,
+      
     });
     const token = jwt.sign(
       { email: newUser.email, id: newUser._id },

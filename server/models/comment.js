@@ -11,6 +11,7 @@ const commentSchema = mongoose.Schema(
       default: Date.now(),
     },
     name: String,
+    photoURL: String,
     // user: {
     //   type: String,
     //   ref: "User",
