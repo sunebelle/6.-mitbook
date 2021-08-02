@@ -1,7 +1,6 @@
 # This is a project inspired from JavaScript Mastery
 
-Website :https://mitbook.netlify.app
-https://mern-mitbook.web.app/
+Website: https://mern-mitbook.web.app/posts
 backend: https://mern-mitbook.herokuapp.com
 
 ## Introduction
